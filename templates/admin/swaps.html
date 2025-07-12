@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Swaps - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Manage Swaps</h2>
+        
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Requester</th>
+                                <th>Requested</th>
+                                <th>Skill Offered</th>
+                                <th>Skill Wanted</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for swap in swaps %}
+                            <tr>
+                                <td>{{ swap.id }}</td>
+                                <td>
+                                    <a href="{{ url_for('profile', user_id=swap.requester.id) }}">
+                                        {{ swap.requester.name }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('profile', user_id=swap.requested.id) }}">
+                                        {{ swap.requested.name }}
+                                    </a>
+                                </td>
+                                <td>{{ swap.skill_offered.name }}</td>
+                                <td>{{ swap.skill_wanted.name }}</td>
+                                <td>
+                                    <span class="badge bg-{% if swap.status == 'pending' %}warning{% elif swap.status == 'accepted' %}success{% elif swap.status == 'rejected' %}danger{% elif swap.status == 'completed' %}info{% else %}secondary{% endif %}">
+                                        {{ swap.status.title() }}
+                                    </span>
+                                </td>
+                                <td>{{ swap.created_at.strftime('%m/%d/%Y') }}</td>
+                                <td>{{ swap.updated_at.strftime('%m/%d/%Y') }}</td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#swapModal{{ swap.id }}">
+                                        Details
+                                    </button>
+                                </td>
+                            </tr>
+                            
+                            <!-- Modal for swap details -->
+                            <div class="modal fade" id="swapModal{{ swap.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Swap Request Details</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p><strong>Message:</strong> {{ swap.message or 'No message' }}</p>
+                                            <p><strong>Skill Offered:</strong> {{ swap.skill_offered.name }}</p>
+                                            <p><strong>Skill Wanted:</strong> {{ swap.skill_wanted.name }}</p>
+                                            <p><strong>Status:</strong> {{ swap.status.title() }}</p>
+                                            <p><strong>Created:</strong> {{ swap.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                                            <p><strong>Last Updated:</strong> {{ swap.updated_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="jumbotron bg-primary text-white p-5 rounded mb-4">
+            <h1 class="display-4">Welcome to Skill Swap</h1>
+            <p class="lead">Connect with others to exchange skills and learn something new. Share what you know and discover what you want to learn.</p>
+            {% if not current_user.is_authenticated %}
+            <a class="btn btn-light btn-lg" href="{{ url_for('register') }}" role="button">Get Started</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if messages %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h3>Platform Updates</h3>
+        {% for message in messages %}
+        <div class="alert alert-info" role="alert">
+            <h5>{{ message.title }}</h5>
+            <p>{{ message.content }}</p>
+            <small class="text-muted">{{ message.created_at.strftime('%B %d, %Y') }}</small>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">{{ total_users }}</h5>
+                <p class="card-text">Active Users</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-lightbulb fa-3x text-warning mb-3"></i>
+                <h5 class="card-title">{{ total_skills }}</h5>
+                <p class="card-text">Skills Available</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-handshake fa-3x text-success mb-3"></i>
+                <h5 class="card-title">{{ total_swaps }}</h5>
+                <p class="card-text">Successful Swaps</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if recent_skills %}
+<div class="row">
+    <div class="col-12">
+        <h3>Recent Skills</h3>
+        <div class="row">
+            {% for skill in recent_skills %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ skill.name }}</h5>
+                        <p class="card-text">{{ skill.description[:100] }}{% if skill.description|length > 100 %}...{% endif %}</p>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                Category: {{ skill.category.title() }}<br>
+                                By: <a href="{{ url_for('profile', user_id=skill.user.id) }}">{{ skill.user.name }}</a>
+                            </small>
+                        </p>
+                        {% if current_user.is_authenticated and skill.user_id != current_user.id %}
+                        <a href="{{ url_for('request_swap', skill_id=skill.id) }}" class="btn btn-primary btn-sm">Request Swap</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-3">
+            <a href="{{ url_for('browse_skills') }}" class="btn btn-outline-primary">Browse All Skills</a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row mt-5">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">How It Works</h5>
+                <ol>
+                    <li>Create your profile and add skills you can offer</li>
+                    <li>List skills you want to learn</li>
+                    <li>Browse and find people with skills you need</li>
+                    <li>Send swap requests and start learning!</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Why Join?</h5>
+                <ul>
+                    <li>Learn new skills for free</li>
+                    <li>Share your expertise with others</li>
+                    <li>Build meaningful connections</li>
+                    <li>Grow your knowledge network</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

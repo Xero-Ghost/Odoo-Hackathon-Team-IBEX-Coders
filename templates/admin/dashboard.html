@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Skill Swap Platform{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Admin Dashboard</h2>
+        
+        <div class="row mb-4">
+            <div class="col-md-2">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                        <h5>{{ total_users }}</h5>
+                        <p class="mb-0">Total Users</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-user-slash fa-2x text-danger mb-2"></i>
+                        <h5>{{ banned_users }}</h5>
+                        <p class="mb-0">Banned Users</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                        <h5>{{ pending_swaps }}</h5>
+                        <p class="mb-0">Pending Swaps</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-handshake fa-2x text-success mb-2"></i>
+                        <h5>{{ completed_swaps }}</h5>
+                        <p class="mb-0">Completed Swaps</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-exclamation-triangle fa-2x text-info mb-2"></i>
+                        <h5>{{ unapproved_skills }}</h5>
+                        <p class="mb-0">Unapproved Skills</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <a href="{{ url_for('admin_users') }}" class="btn btn-primary w-100 mb-2">
+                    <i class="fas fa-users me-2"></i>Manage Users
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('admin_swaps') }}" class="btn btn-primary w-100 mb-2">
+                    <i class="fas fa-exchange-alt me-2"></i>Manage Swaps
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('admin_send_message') }}" class="btn btn-primary w-100 mb-2">
+                    <i class="fas fa-bullhorn me-2"></i>Send Message
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="{{ url_for('admin_reports') }}" class="btn btn-primary w-100 mb-2">
+                    <i class="fas fa-chart-bar me-2"></i>View Reports
+                </a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Admin Actions</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_actions %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Admin</th>
+                                <th>Action</th>
+                                <th>Description</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for action in recent_actions %}
+                            <tr>
+                                <td>{{ action.admin.name }}</td>
+                                <td>{{ action.action_type.replace('_', ' ').title() }}</td>
+                                <td>{{ action.description }}</td>
+                                <td>{{ action.created_at.strftime('%m/%d/%Y %I:%M %p') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No recent actions.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
