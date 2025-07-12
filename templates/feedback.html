@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title">Leave Feedback</h2>
+                
+                <div class="d-flex align-items-center mb-4">
+                    {% if feedback_to.profile_photo %}
+                    <img src="{{ url_for('static', filename='uploads/' + feedback_to.profile_photo) }}" 
+                         alt="Profile" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                    {% else %}
+                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3" 
+                         style="width: 60px; height: 60px; color: white; font-size: 20px;">
+                        {{ feedback_to.first_name[0] }}{{ feedback_to.last_name[0] }}
+                    </div>
+                    {% endif %}
+                    
+                    <div>
+                        <h4>{{ feedback_to.full_name }}</h4>
+                        <p class="text-muted mb-0">{{ swap_request.skill_offered }} → {{ swap_request.skill_wanted }}</p>
+                    </div>
+                </div>
+                
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Rating</label>
+                        <div class="rating-input">
+                            {% for i in range(1, 6) %}
+                            <i class="fas fa-star rating-star" data-rating="{{ i }}"></i>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="rating" id="rating" value="">
+                    </div>
+                    
+                    <div class="mb-4">
+                        {{ form.comment.label(class="form-label") }}
+                        {{ form.comment(class="form-control", rows="4") }}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Submit Feedback</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const stars = document.querySelectorAll('.rating-star');
+    const ratingInput = document.getElementById('rating');
+    
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = parseInt(this.getAttribute('data-rating'));
+            ratingInput.value = rating;
+            
+            stars.forEach((s, index) => {
+                if (index < rating) {
+                    s.classList.add('active');
+                } else {
+                    s.classList.remove('active');
+                }
+            });
+        });
+        
+        star.addEventListener('mouseenter', function() {
+            const rating = parseInt(this.getAttribute('data-rating'));
+            
+            stars.forEach((s, index) => {
+                if (index < rating) {
+                    s.classList.add('hover');
+                } else {
+                    s.classList.remove('hover');
+                }
+            });
+        });
+    });
+    
+    document.querySelector('.rating-input').addEventListener('mouseleave', function() {
+        stars.forEach(s => s.classList.remove('hover'));
+    });
+});
+</script>
+{% endblock %}

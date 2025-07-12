@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        {% if show_requests %}
+        <!-- Requests Management -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Received Requests</h5>
+            </div>
+            <div class="card-body">
+                {% if received_requests %}
+                    {% for request in received_requests %}
+                    <div class="request-item">
+                        <div class="d-flex align-items-center">
+                            {% if request.requester.profile_photo %}
+                            <img src="{{ url_for('static', filename='uploads/' + request.requester.profile_photo) }}" 
+                                 alt="Profile" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                            {% else %}
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3" 
+                                 style="width: 50px; height: 50px; color: white;">
+                                {{ request.requester.first_name[0] }}{{ request.requester.last_name[0] }}
+                            </div>
+                            {% endif %}
+                            
+                            <div class="flex-grow-1">
+                                <h6>{{ request.requester.full_name }}</h6>
+                                <p class="mb-1">Requested: {{ request.skill_offered }} → {{ request.skill_wanted }}</p>
+                                {% if request.message %}
+                                <p class="text-muted mb-0">{{ request.message }}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <div>
+                                <a href="{{ url_for('handle_request', request_id=request.id, action='accept') }}" 
+                                   class="btn btn-success btn-sm me-2">Accept</a>
+                                <a href="{{ url_for('handle_request', request_id=request.id, action='decline') }}" 
+                                   class="btn btn-outline-secondary btn-sm">Decline</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No pending requests.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5>Sent Requests</h5>
+            </div>
+            <div class="card-body">
+                {% if sent_requests %}
+                    {% for request in sent_requests %}
+                    <div class="request-item">
+                        <div class="d-flex align-items-center">
+                            {% if request.requested.profile_photo %}
+                            <img src="{{ url_for('static', filename='uploads/' + request.requested.profile_photo) }}" 
+                                 alt="Profile" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                            {% else %}
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3" 
+                                 style="width: 50px; height: 50px; color: white;">
+                                {{ request.requested.first_name[0] }}{{ request.requested.last_name[0] }}
+                            </div>
+                            {% endif %}
+                            
+                            <div class="flex-grow-1">
+                                <h6>{{ request.requested.full_name }}</h6>
+                                <p class="mb-1">{{ request.skill_offered }} → {{ request.skill_wanted }}</p>
+                                <span class="badge bg-{{ 'success' if request.status == 'accepted' else 'warning' if request.status == 'pending' else 'secondary' }}">
+                                    {{ request.status.title() }}
+                                </span>
+                            </div>
+                            
+                            <div>
+                                {% if request.status == 'pending' %}
+                                <a href="{{ url_for('cancel_request', request_id=request.id) }}" 
+                                   class="btn btn-outline-danger btn-sm">Cancel</a>
+                                {% elif request.status == 'accepted' %}
+                                <a href="{{ url_for('complete_swap', request_id=request.id) }}" 
+                                   class="btn btn-success btn-sm">Complete</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No sent requests.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% elif show_messages %}
+        <!-- Messages -->
+        <div class="card">
+            <div class="card-header">
+                <h5>Platform Messages</h5>
+            </div>
+            <div class="card-body">
+                {% if admin_messages %}
+                    {% for message in admin_messages %}
+                    <div class="message-item">
+                        <div class="d-flex justify-content-between">
+                            <h6>{{ message.title }}</h6>
+                            <small class="text-muted">{{ message.created_at.strftime('%b %d, %Y') }}</small>
+                        </div>
+                        <p>{{ message.content }}</p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No messages.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% else %}
+        <!-- Recent Activity -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_requests %}
+                    {% for request in recent_requests %}
+                    <div class="activity-item">
+                        <div class="d-flex align-items-center">
+                            {% if request.requester.profile_photo %}
+                            <img src="{{ url_for('static', filename='uploads/' + request.requester.profile_photo) }}" 
+                                 alt="Profile" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                            {% else %}
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3" 
+                                 style="width: 40px; height: 40px; color: white; font-size: 12px;">
+                                {{ request.requester.first_name[0] }}{{ request.requester.last_name[0] }}
+                            </div>
+                            {% endif %}
+                            
+                            <div class="flex-grow-1">
+                                <p class="mb-1"><strong>{{ request.requester.full_name }}</strong></p>
+                                <p class="text-muted mb-0">Requested: {{ request.skill_offered }} → {{ request.skill_wanted }}</p>
+                            </div>
+                            
+                            <div>
+                                <a href="{{ url_for('handle_request', request_id=request.id, action='accept') }}" 
+                                   class="btn btn-success btn-sm me-2">Accept</a>
+                                <a href="{{ url_for('handle_request', request_id=request.id, action='decline') }}" 
+                                   class="btn btn-outline-secondary btn-sm">Decline</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No recent activity.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if completed_swaps %}
+        <div class="card">
+            <div class="card-header">
+                <h5>Completed Swaps</h5>
+            </div>
+            <div class="card-body">
+                {% for swap in completed_swaps %}
+                <div class="activity-item">
+                    <div class="d-flex align-items-center">
+                        {% set other_user = swap.requested if swap.requester_id == current_user.id else swap.requester %}
+                        {% if other_user.profile_photo %}
+                        <img src="{{ url_for('static', filename='uploads/' + other_user.profile_photo) }}" 
+                             alt="Profile" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3" 
+                             style="width: 40px; height: 40px; color: white; font-size: 12px;">
+                            {{ other_user.first_name[0] }}{{ other_user.last_name[0] }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="flex-grow-1">
+                            <p class="mb-1"><strong>{{ other_user.full_name }}</strong></p>
+                            <p class="text-muted mb-0">Swap completed: {{ swap.skill_offered }} ↔ {{ swap.skill_wanted }}</p>
+                        </div>
+                        
+                        <span class="badge bg-success">
+                            <i class="fas fa-check-circle"></i> Completed
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Statistics -->
+        <div class="row">
+            <div class="col-12 mb-3">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>{{ current_user.get_active_swaps() }}</h4>
+                        <small>Active Swaps</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12 mb-3">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>{{ current_user.get_pending_requests() }}</h4>
+                        <small>Pending Requests</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-12 mb-3">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>{{ current_user.get_completed_swaps() }}</h4>
+                        <small>Completed</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h6>Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('browse') }}" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>Browse Skills
+                    </a>
+                    <a href="{{ url_for('profile') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-user me-2"></i>Edit Profile
+                    </a>
+                    <a href="{{ url_for('requests') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-envelope me-2"></i>View Requests
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
