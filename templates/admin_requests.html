@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Admin Sidebar -->
+        <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+            <div class="position-sticky pt-3">
+                <h5 class="sidebar-heading px-3 text-muted">Admin Panel</h5>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin') }}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin_users') }}">
+                            <i class="fas fa-users"></i> Users
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('admin_requests') }}">
+                            <i class="fas fa-exchange-alt"></i> Swap Requests
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin_message') }}">
+                            <i class="fas fa-envelope"></i> Send Message
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Swap Requests Management</h1>
+            </div>
+
+            <!-- Requests Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>All Swap Requests ({{ requests|length }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Requester</th>
+                                    <th>Requested</th>
+                                    <th>Skills</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Updated</th>
+                                    <th>Message</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for request in requests %}
+                                <tr>
+                                    <td>{{ request.id }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if request.requester.profile_photo %}
+                                            <img src="{{ url_for('static', filename='uploads/' + request.requester.profile_photo) }}" 
+                                                 alt="Profile" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                                            {% else %}
+                                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" 
+                                                 style="width: 32px; height: 32px; color: white; font-size: 12px;">
+                                                {{ request.requester.first_name[0] }}{{ request.requester.last_name[0] }}
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <small class="fw-bold">{{ request.requester.full_name }}</small><br>
+                                                <small class="text-muted">{{ request.requester.email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if request.requested.profile_photo %}
+                                            <img src="{{ url_for('static', filename='uploads/' + request.requested.profile_photo) }}" 
+                                                 alt="Profile" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                                            {% else %}
+                                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" 
+                                                 style="width: 32px; height: 32px; color: white; font-size: 12px;">
+                                                {{ request.requested.first_name[0] }}{{ request.requested.last_name[0] }}
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <small class="fw-bold">{{ request.requested.full_name }}</small><br>
+                                                <small class="text-muted">{{ request.requested.email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <small class="text-success">{{ request.skill_offered }}</small>
+                                        <i class="fas fa-exchange-alt mx-1"></i>
+                                        <small class="text-primary">{{ request.skill_wanted }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if request.status == 'completed' else 'warning' if request.status == 'pending' else 'info' if request.status == 'accepted' else 'danger' }}">
+                                            {{ request.status.title() }}
+                                        </span>
+                                    </td>
+                                    <td>{{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>{{ request.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        {% if request.message %}
+                                        <button class="btn btn-sm btn-outline-info" onclick="showMessage('{{ request.message|e }}')">
+                                            View Message
+                                        </button>
+                                        {% else %}
+                                        <small class="text-muted">No message</small>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Message Modal -->
+<div class="modal fade" id="messageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Request Message</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="messageContent"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showMessage(message) {
+    document.getElementById('messageContent').textContent = message;
+    const modal = new bootstrap.Modal(document.getElementById('messageModal'));
+    modal.show();
+}
+</script>
+
+<style>
+.sidebar {
+    position: fixed;
+    top: 76px;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    padding: 0;
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+}
+
+.sidebar-heading {
+    font-size: .875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.sidebar .nav-link {
+    color: #333;
+    padding: .5rem 1rem;
+    border-radius: 0;
+}
+
+.sidebar .nav-link:hover {
+    background-color: #f8f9fa;
+}
+
+.sidebar .nav-link.active {
+    color: #007bff;
+    background-color: #e3f2fd;
+}
+
+main {
+    margin-left: 240px;
+}
+
+@media (max-width: 768px) {
+    main {
+        margin-left: 0;
+    }
+    .sidebar {
+        position: relative;
+        top: 0;
+    }
+}
+</style>
+{% endblock %}
