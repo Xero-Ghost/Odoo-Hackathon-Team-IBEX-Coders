@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Request Swap - Skill Swap Platform{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h3>Request Skill Swap</h3>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5>Skill You Want to Learn</h5>
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">{{ skill.name }}</h6>
+                                <p class="card-text">{{ skill.description or 'No description provided' }}</p>
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        Category: {{ skill.category.title() }}<br>
+                                        Offered by: <a href="{{ url_for('profile', user_id=skill.user.id) }}">{{ skill.user.name }}</a>
+                                    </small>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Their Skills Wanted</h5>
+                        {% if target_user_wants %}
+                        <div class="list-group">
+                            {% for wanted_skill in target_user_wants %}
+                            <div class="list-group-item">
+                                <h6>{{ wanted_skill.name }}</h6>
+                                <p class="mb-1">{{ wanted_skill.description or 'No description provided' }}</p>
+                                <small class="text-muted">Category: {{ wanted_skill.category.title() }}</small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted">This user hasn't specified any skills they want to learn.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if matching_skills %}
+                <div class="alert alert-success">
+                    <h5><i class="fas fa-check-circle"></i> Great Match Found!</h5>
+                    <p>Your skills match what this user is looking for:</p>
+                    <ul class="mb-0">
+                        {% for match in matching_skills %}
+                        <li><strong>{{ match.user_skill.name }}</strong> matches their interest in <strong>{{ match.wanted_skill.name }}</strong></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label for="skill_offered_id" class="form-label">Select Your Skill to Offer</label>
+                        <select name="skill_offered_id" id="skill_offered_id" class="form-select" required>
+                            <option value="">Choose a skill...</option>
+                            {% for user_skill in user_skills %}
+                            <option value="{{ user_skill.id }}">{{ user_skill.name }} - {{ user_skill.category.title() }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="skill_wanted_id" class="form-label">Skill You Want (from their profile)</label>
+                        <select name="skill_wanted_id" id="skill_wanted_id" class="form-select" required>
+                            <option value="">Choose a skill...</option>
+                            {% for wanted_skill in target_user_wants %}
+                            <option value="{{ wanted_skill.id }}">{{ wanted_skill.name }} - {{ wanted_skill.category.title() }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if not target_user_wants %}
+                        <div class="form-text">This user hasn't specified skills they want to learn. You can still send a request with a message.</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.message.label(class="form-label") }}
+                        {{ form.message(class="form-control", rows="4", placeholder="Hi! I'd like to exchange skills with you. When would be a good time to connect?") }}
+                        {% if form.message.errors %}
+                            <div class="text-danger">
+                                {% for error in form.message.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('browse_skills') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Send Swap Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const skillOfferedSelect = document.getElementById('skill_offered_id');
+    const skillWantedSelect = document.getElementById('skill_wanted_id');
+    const messageTextarea = document.querySelector('textarea[name="message"]');
+    
+    function updateMessage() {
+        const offeredSkill = skillOfferedSelect.options[skillOfferedSelect.selectedIndex]?.text;
+        const wantedSkill = skillWantedSelect.options[skillWantedSelect.selectedIndex]?.text;
+        
+        if (offeredSkill && wantedSkill && offeredSkill !== "Choose a skill..." && wantedSkill !== "Choose a skill...") {
+            if (messageTextarea.value === '' || messageTextarea.value.includes("I'd like to exchange skills")) {
+                messageTextarea.value = `Hi! I'd like to exchange my ${offeredSkill.split(' - ')[0]} skills for your ${wantedSkill.split(' - ')[0]} expertise. When would be a good time to connect?`;
+            }
+        }
+    }
+    
+    skillOfferedSelect.addEventListener('change', updateMessage);
+    skillWantedSelect.addEventListener('change', updateMessage);
+});
+</script>
+{% endblock %}

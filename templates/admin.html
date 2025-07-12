@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">Admin Dashboard</h2>
+        
+        <!-- Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>{{ total_users }}</h4>
+                        <small>Total Users</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>{{ active_swaps }}</h4>
+                        <small>Active Swaps</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>{{ pending_requests }}</h4>
+                        <small>Pending Requests</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h4>{{ completed_swaps }}</h4>
+                        <small>Completed</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('admin_message') }}" class="btn btn-primary">
+                                <i class="fas fa-bullhorn me-2"></i>Send Platform Message
+                            </a>
+                            <button class="btn btn-outline-primary" onclick="downloadReport()">
+                                <i class="fas fa-download me-2"></i>Download Activity Report
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-warning" onclick="viewReports()">
+                                <i class="fas fa-chart-bar me-2"></i>View Analytics
+                            </button>
+                            <button class="btn btn-info" onclick="viewFeedback()">
+                                <i class="fas fa-comments me-2"></i>View All Feedback
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% if show_message_form %}
+        <!-- Message Form -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Send Platform Message</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ message_form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ message_form.title.label(class="form-label") }}
+                        {{ message_form.title(class="form-control") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ message_form.content.label(class="form-label") }}
+                        {{ message_form.content(class="form-control", rows="4") }}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('admin') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Send Message</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Recent Users -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Recent Users</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for user in recent_users %}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex align-items-center">
+                                {% if user.profile_photo %}
+                                <img src="{{ url_for('static', filename='uploads/' + user.profile_photo) }}" 
+                                     alt="Profile" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                                {% else %}
+                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3" 
+                                     style="width: 40px; height: 40px; color: white; font-size: 12px;">
+                                    {{ user.first_name[0] }}{{ user.last_name[0] }}
+                                </div>
+                                {% endif %}
+                                
+                                <div>
+                                    <h6 class="mb-1">{{ user.full_name }}</h6>
+                                    <small class="text-muted">{{ user.email }}</small>
+                                </div>
+                            </div>
+                            
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                                        data-bs-toggle="dropdown">
+                                    Actions
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{{ url_for('view_user', user_id=user.id) }}">View Profile</a></li>
+                                    {% if not user.is_admin %}
+                                    <li><a class="dropdown-item text-danger" href="{{ url_for('ban_user', user_id=user.id) }}">Ban User</a></li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Recent Swaps</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for swap in recent_swaps %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6>{{ swap.requester.full_name }} → {{ swap.requested.full_name }}</h6>
+                                    <p class="text-muted mb-1">{{ swap.skill_offered }} ↔ {{ swap.skill_wanted }}</p>
+                                </div>
+                                <span class="badge bg-{{ 'success' if swap.status == 'completed' else 'warning' if swap.status == 'pending' else 'info' }}">
+                                    {{ swap.status.title() }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Feedback -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Recent Feedback</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for feedback in recent_feedback %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6>{{ feedback.from_user.full_name }} → {{ feedback.to_user.full_name }}</h6>
+                                    <div class="rating-display mb-1">
+                                        {% for i in range(1, 6) %}
+                                            {% if i <= feedback.rating %}
+                                            <i class="fas fa-star text-warning"></i>
+                                            {% else %}
+                                            <i class="far fa-star text-muted"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    {% if feedback.comment %}
+                                    <p class="text-muted mb-0">{{ feedback.comment[:100] }}{% if feedback.comment|length > 100 %}...{% endif %}</p>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted">{{ feedback.created_at.strftime('%b %d') }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function downloadReport() {
+    // In a real application, this would generate and download a CSV/PDF report
+    alert('Report generation feature would be implemented here');
+}
+
+function viewReports() {
+    // In a real application, this would show analytics dashboard
+    alert('Analytics dashboard would be implemented here');
+}
+
+function viewFeedback() {
+    // In a real application, this would show all feedback
+    alert('Feedback management would be implemented here');
+}
+</script>
+{% endblock %}
