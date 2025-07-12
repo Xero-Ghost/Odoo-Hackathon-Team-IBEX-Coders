@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Browse Skills</h2>
+        </div>
+        
+        <!-- Search and Filter -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" name="search_query" class="form-control form-control-lg" 
+                                   placeholder="Search skills..." value="{{ request.args.get('search_query', '') }}">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="category" class="form-select form-select-lg">
+                            <option value="">All Categories</option>
+                            <option value="design" {{ 'selected' if request.args.get('category') == 'design' }}>Design</option>
+                            <option value="development" {{ 'selected' if request.args.get('category') == 'development' }}>Development</option>
+                            <option value="marketing" {{ 'selected' if request.args.get('category') == 'marketing' }}>Marketing</option>
+                            <option value="business" {{ 'selected' if request.args.get('category') == 'business' }}>Business</option>
+                            <option value="languages" {{ 'selected' if request.args.get('category') == 'languages' }}>Languages</option>
+                            <option value="music" {{ 'selected' if request.args.get('category') == 'music' }}>Music</option>
+                            <option value="sports" {{ 'selected' if request.args.get('category') == 'sports' }}>Sports</option>
+                            <option value="cooking" {{ 'selected' if request.args.get('category') == 'cooking' }}>Cooking</option>
+                            <option value="photography" {{ 'selected' if request.args.get('category') == 'photography' }}>Photography</option>
+                            <option value="writing" {{ 'selected' if request.args.get('category') == 'writing' }}>Writing</option>
+                            <option value="other" {{ 'selected' if request.args.get('category') == 'other' }}>Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- User Cards -->
+        <div class="row">
+            {% for user in users %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card user-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            {% if user.profile_photo %}
+                            <img src="{{ url_for('static', filename='uploads/' + user.profile_photo) }}" 
+                                 alt="Profile" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                            {% else %}
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3" 
+                                 style="width: 60px; height: 60px; color: white; font-size: 18px;">
+                                {{ user.first_name[0] }}{{ user.last_name[0] }}
+                            </div>
+                            {% endif %}
+                            
+                            <div class="flex-grow-1">
+                                <h5 class="card-title mb-1">
+                                    {{ user.full_name }}
+                                    {% if user.is_admin %}
+                                    <span class="admin-badge">
+                                        <i class="fas fa-shield-alt"></i>
+                                        Admin
+                                    </span>
+                                    {% endif %}
+                                </h5>
+                                <p class="text-muted mb-1">{{ user.location or 'Location not specified' }}</p>
+                                {% if user.received_feedback %}
+                                <div class="rating-section">
+                                    <div class="stars">
+                                        {% for i in range(1, 6) %}
+                                            {% if i <= user.average_rating %}
+                                            <i class="fas fa-star text-warning"></i>
+                                            {% else %}
+                                            <i class="far fa-star text-muted"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                        <span class="rating-text">{{ user.average_rating }} ({{ user.review_count }} reviews)</span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <a href="{{ url_for('view_user', user_id=user.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-user"></i>
+                            </a>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6>Offers</h6>
+                            <div class="skills-tags">
+                                {% for skill in user.skills_offered[:3] %}
+                                <span class="skill-tag skill-offered">{{ skill.name }}</span>
+                                {% endfor %}
+                                {% if user.skills_offered|length > 3 %}
+                                <span class="text-muted">+{{ user.skills_offered|length - 3 }} more</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6>Wants</h6>
+                            <div class="skills-tags">
+                                {% for skill in user.skills_wanted[:3] %}
+                                <span class="skill-tag skill-wanted">{{ skill.name }}</span>
+                                {% endfor %}
+                                {% if user.skills_wanted|length > 3 %}
+                                <span class="text-muted">+{{ user.skills_wanted|length - 3 }} more</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{{ url_for('view_user', user_id=user.id) }}" class="btn btn-primary">
+                                View Profile
+                            </a>
+                            {% if user.availability %}
+                            <small class="text-muted">{{ user.availability }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if not users %}
+        <div class="text-center py-5">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <h4>No users found</h4>
+            <p class="text-muted">Try adjusting your search criteria or browse all users.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
